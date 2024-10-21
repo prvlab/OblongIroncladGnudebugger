@@ -1,0 +1,19 @@
+{
+    "telegram": {
+      "token": "7067220110:AAFFfaXE5ZZoRj3vOl4woTzXzxnrhZES2og"
+    },
+    "database": {
+        "host": "81.94.150.252",
+        "port": 5434,
+        "user": "postgres",
+        "password": "derwerjxtymckj;ysq1640",
+        "dbname": "TelegramBotDB"
+    },
+    "server": {
+      "server_host": "0.0.0.0",
+      "server_port": "8070"
+    }
+  }
+
+
+  

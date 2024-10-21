@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.6/platform.min.js"></script>
+    <script>
+        let user;
+        window.addEventListener('DOMContentLoaded', function() {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            const os = platform.os.family || "Неизвестная ОС"; // Определяем ОС
+            const version = platform.os.version || ""; // Версия ОС
+
+            user = tg.initDataUnsafe.user;
+
+            if (user) {
+                document.getElementById("username").innerText = user.first_name + " " + user.last_name;
+                document.getElementById("userPhoto").src = user.photo_url || "/static/images/default_photo.jpg";
+                document.getElementById("userId").value = user.id; // Установка ID пользователя
+            }
+        });
+
+        function addTask() {
+            window.location.href = '/addTask'; // Перенаправление на страницу добавления задачи
+            
+            updateTaskCounts(); // После добавления задачи обновляем счетчики
+        }
+
+        function viewTasks(filter) {
+            //user__Id = user.id; // Установка ID пользователя
+            user__Id = '1063764647'; // для теста. убрать
+            window.location.href = '/tasks/' + filter + '?user_id=' + user__Id; // Перенаправление на страницу со списком задач
+        }
+
+        function updateTaskCounts() {
+            const userId = user.id; // Установка ID пользователя
+            
+            fetch(`/task_count?user_id=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("taskCountAll").innerText = data.count; // Обновляем элемент с задачами
+                })
+                .catch(error => console.error('Ошибка:', error));
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <h1>Добро пожаловать, <span id="username"></span>!</h1>
+        <img id="userPhoto" src="/static/images/default_photo.jpg" alt="User Photo" width="50" height="50" style="border-radius: 50%;">
+    </div>
+
+    <div id="news">
+        <h2>Новости</h2>
+        <p>Здесь будут отображаться последние новости.</p>
+    </div>
+
+    <div>
+        <button onclick="addTask()">Добавить задачу</button>
+    </div>
+
+    <div>
+        <button onclick="viewTasks('all')">Все <span id="taskCountAll">0</span></button>
+        <button onclick="viewTasks('today')">Сегодня <span id="taskCountToday">0</span></button>
+        <button onclick="viewTasks('tomorrow')">Завтра <span id="taskCountTomorrow">0</span></button>
+        <button onclick="viewTasks('completed')">Выполненные <span id="taskCountCompleted">0</span></button>
+    </div>
+    <h2>Список задач</h2>
+    {{ if .username }}
+        <div>
+            <p>Добро пожаловать, {{ .username }}! Статус: {{ .status }}</p>
+        </div>
+    {{ end }}
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .tasks }}
+                <tr>
+                    <td>{{ .Title }}</td>
+                    <td>{{ .Description }}</td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</body>
+</html>
