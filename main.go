@@ -26,6 +26,8 @@ var appConfig config.Config
 var users = make(map[int]int) // для хранения пользовательского статуса
 var mu sync.Mutex             // мьютекс для безопасного доступа к map в goroutines
 
+ 
+
 // функция для обновления пользовательского статуса
 func updateUserStatus(userID int, status int) {
 	mu.Lock()
@@ -99,6 +101,11 @@ func main() {
 
 	router.GET("/task_count", getTaskCount)
 
+	router.GET("/registration", controllers.RegistrationPage)
+	router.POST("/registration", controllers.HandleRegister)
+	router.GET("/ok_registration", controllers.OkRegistrationPage)
+	
+
 	// Запуск веб-сервера
 	serverAddress := appConfig.Server.ServerHost + ":" + appConfig.Server.ServerPort
 	log.Println("Server is running on", serverAddress)
@@ -130,14 +137,14 @@ func homePage(c *gin.Context) {
 		status := getUserStatus(userID)
 
 		// Передать в HTML-ответ информацию о пользователе
-		c.HTML(http.StatusOK, "task_view.html", gin.H{
+		c.HTML(http.StatusOK, "index_vhod.html", gin.H{
 			"userID":   userID,
 			"status":   status,             // Проверьте свой статус пользователя
 			"username": "Имя пользователя", // здесь вы можете настроить получение имени
 			"os":       os,                 // Показать ОС
 		})
 	} else {
-		c.HTML(http.StatusBadRequest, "task_view.html", nil)
+		c.HTML(http.StatusBadRequest, "index_vhod.html", nil)
 	}
 	//	} else {
 	//		// Если не мобильное устройство, ничего не выводим

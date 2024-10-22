@@ -1,0 +1,88 @@
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <div class="flex items-center mb-6">
+            <i class="fas fa-user-plus text-purple-500 text-2xl mr-2"></i>
+            <h2 class="text-2xl font-semibold">Регистрация</h2>
+        </div>
+        <form id="registration-form" method="POST">
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2" for="first-name">Имя</label>
+                <input class="w-full px-3 py-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500" type="text" id="first-name" name="first_name" placeholder="Введите ваше имя">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2" for="last-name">Фамилия</label>
+                <input class="w-full px-3 py-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500" type="text" id="last-name" name="last_name" placeholder="Введите вашу фамилию">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2" for="email">Электронная почта</label>
+                <input class="w-full px-3 py-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500" type="email" id="email" name="email" placeholder="Введите вашу электронную почту">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2" for="password">Пароль</label>
+                <input class="w-full px-3 py-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500" type="password" id="password" name="password" placeholder="Введите ваш пароль">
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2" for="confirm-password">Подтвердите пароль</label>
+                <input class="w-full px-3 py-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500" type="password" id="confirm-password" name="confirm_password" placeholder="Подтвердите ваш пароль">
+                <p id="error-message" class="text-red-500 mt-2 hidden">Все поля должны быть заполнены и пароли должны совпадать</p>
+            </div>
+            <div class="flex justify-between">
+                <button class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 focus:outline-none focus:bg-purple-600" type="submit">Регистрация</button>
+                <a href="/" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">Отмена</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registration-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const firstName = document.getElementById('first-name').value.trim();
+            const lastName = document.getElementById('last-name').value.trim();
+            const eMail = document.getElementById('email').value.trim();
+            const passWord = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirm-password').value.trim();
+            const errorMessage = document.getElementById('error-message');
+
+            if (!firstName || !lastName || !eMail || !passWord || !confirmPassword || passWord !== confirmPassword) {
+                errorMessage.classList.remove('hidden');
+            } else {
+                errorMessage.classList.add('hidden');
+                // Create JSON object
+                const userData = {
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: eMail,
+                    password: passWord,
+                    confirm_password: confirmPassword
+                };
+                // Send data using POST method
+                fetch('/registration', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/ok_registration';
+                    } else {
+                        alert('Ошибка при отправке данных');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

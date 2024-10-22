@@ -1,19 +1,11 @@
 package controllers
 
 import (
-	//"fmt"
-	//"log"
 	"net/http"
 	"strconv"
-
-	//"sync"
-	//"task-manager/config"
 	"task-manager/models"
 	"time"
-
 	"github.com/gin-gonic/gin"
-	//tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	//"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
