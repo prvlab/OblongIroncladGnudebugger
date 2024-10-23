@@ -6,7 +6,10 @@ import (
 	//"task-manager/models"
   "net/smtp"
 	"github.com/gin-gonic/gin"
+  //"github.com/jordan-wright/email"
   //"encoding/json"
+  //"os"
+  "task-manager/config"
 )
 
 // User структура для представления пользователя
@@ -21,6 +24,7 @@ type User struct {
 type Emails struct {  
   Email string `json:"email"`
 }  
+
 // Функция регистрации пользователя
 func RegistrationPage(c *gin.Context) {
 	c.HTML(http.StatusBadRequest, "registration.html", nil)
@@ -65,7 +69,7 @@ func HandleResetPassword(c *gin.Context){
       return  
     }
   // Отправляем электронное письмо с паролем  
-  if err := sendEmail(email.Email, password); err != nil {  
+  if err := sendEmailWithoutTLS(email.Email, password); err != nil {  
     c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось отправить письмо с паролем"})  
     return  
   }  
@@ -76,19 +80,26 @@ func HandleResetPassword(c *gin.Context){
 
 }
 
-// sendEmail отправляет email с паролем  
-func sendEmail(to string, password string) error {  
-  
-  from := "r.pavlov@ano-mcms.ru"            // Ваш email  
-  pass := "*Gector1003"                     // Ваш пароль от email  
-  // Указываем SMTP сервер и порт  
-  smtpHost := "mx.ano-mcms.ru"  
-  smtpPort := "465" // Для TLS
-  
-  msg := fmt.Sprintf("From: %s\nTo: %s\nSubject: Ваш пароль\n\nВаш пароль: %s", from, to, password)  
-  auth := smtp.PlainAuth("", from, pass, smtpHost)
 
-  // Отправляем email  
-  fmt.Println("Сервер %s\n", msg)
-  return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, []byte(msg)) 
-} 
+func sendEmailWithoutTLS(to, password string) error {
+    
+  config, err := config.LoadConfig("config/config.json")  
+  if err != nil {  
+      fmt.Println("Error loading config:", err)  
+      return err 
+  }
+  //from := "info@prvlab.ru"
+  //pass := "fcvycYrUceBGVTLRxrQd"
+  //smtpHost := "smtp.mail.ru"
+  //smtpPort := "25" // Порт для SMTP без TLS (обычно 587 или 25)
+
+  msg := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n\nВаш пароль: %s", config.Emails.Email, to, config.Emails.Subject, password)
+  auth := smtp.PlainAuth("", config.Emails.Email, config.Emails.Password, config.Emails.SmtpServer)
+
+  // Отправка email без TLS - ОПАСНО!
+  err = smtp.SendMail(config.Emails.SmtpServer+":"+ config.Emails.SmtpPort, auth, config.Emails.Email, []string{to}, []byte(msg))
+  if err != nil {
+    return fmt.Errorf("не удалось отправить email: %w", err)
+  }
+  return nil
+}

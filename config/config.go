@@ -21,6 +21,15 @@ type Config struct {
 		ServerHost string `json:"server_host"`
 		ServerPort string `json:"server_port"`
 	}
+	Emails struct {  
+			Email      string `json:"email"`  
+			Password   string `json:"password"`  
+			SmtpServer string `json:"smtp_server"`  
+			SmtpPort   string `json:"smtp_port"`  
+			Recipient  string `json:"recipient"`  
+			Subject    string `json:"subject"`  
+			Body       string `json:"body"`  
+	}`json:"emails"`
 }
 
 // LoadConfig загружает конфигурацию из файла

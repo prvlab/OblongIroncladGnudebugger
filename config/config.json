@@ -12,8 +12,17 @@
     "server": {
       "server_host": "0.0.0.0",
       "server_port": "8070"
-    }
+    },
+  "emails":{  
+      "email": "info@prvlab.ru",  
+      "password": "fcvycYrUceBGVTLRxrQd",  
+      "smtp_server": "smtp.mail.ru",  
+      "smtp_port": "25",  
+      "recipient": "recipient@example.com",  
+      "subject": "TasksEvents - восстановление пароля",  
+      "body": "This is a test email sent from Go using Gmail!"  
   }
+}
 
 
   
