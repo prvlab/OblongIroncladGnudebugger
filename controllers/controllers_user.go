@@ -1,15 +1,20 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
-  "fmt"
+  "time"
 	//"task-manager/models"
-  "net/smtp"
+	"net/smtp"
+
 	"github.com/gin-gonic/gin"
-  //"github.com/jordan-wright/email"
-  //"encoding/json"
-  //"os"
-  "task-manager/config"
+  "gorm.io/gorm"
+  "github.com/google/uuid"
+	//"github.com/jordan-wright/email"
+	//"encoding/json"
+	//"os"
+	"task-manager/config"
+	"task-manager/models"
 )
 
 // User структура для представления пользователя
@@ -29,7 +34,13 @@ type Emails struct {
 func RegistrationPage(c *gin.Context) {
 	c.HTML(http.StatusBadRequest, "registration.html", nil)
 }
+func OkRegistrationPage(c *gin.Context) {
+  c.HTML(http.StatusBadRequest, "ok.html", nil)
+}
 
+func ResetPasswordPage(c *gin.Context) {
+  c.HTML(http.StatusBadRequest, "reset_password.html", nil)
+}
 // handleRegister обрабатывает регистрацию пользователя
 func HandleRegister(c *gin.Context) {
 	var user User
@@ -41,59 +52,71 @@ func HandleRegister(c *gin.Context) {
 
 	// Здесь можно добавить логику для проверки паролей и сохранения пользователя в базу данных
 	if user.Password != user.ConfirmPassword {
-		c.HTML(http.StatusBadRequest, "registration.html", gin.H{"error": "Пароли не совпадают"})
+		c.HTML(http.StatusBadRequest, "registration.html", gin.H{"message": "Пароли не совпадают"})
 		return
 	}
-  //fmt.Print("Регистрация успешна!", user)
+  
+  // создаем новую задачу
+  adduser := models.Users{FirstName: user.FirstName, LastName: user.LastName, Email: user.Email, Password: user.Password}
+
+  db.Create(&adduser)
 	// Для примера отображаем данные на экране
 	c.JSON(http.StatusOK, gin.H{"message": "Регистрация успешна!", "user": user})
 }
-func OkRegistrationPage(c *gin.Context) {
-  c.HTML(http.StatusBadRequest, "ok.html", nil)
-}
-
-func ResetPasswordPage(c *gin.Context) {
-  c.HTML(http.StatusBadRequest, "reset_password.html", nil)
-}
 
 func HandleResetPassword(c *gin.Context){
-
-  
-  var password ="45678903743"
   var email Emails 
-
-  fmt.Sprintf("HandleResetPassword")
-              
+      
   if err := c.ShouldBindJSON(&email); err != nil{  
       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})  
       return  
     }
-  // Отправляем электронное письмо с паролем  
-  if err := sendEmailWithoutTLS(email.Email, password); err != nil {  
-    c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось отправить письмо с паролем"})  
-    return  
-  }  
+// Проверяем email в базе данных. Если есть, то отправляем пароль на электронную почту. Если нет, то отправляем сообщение об ошибке.
 
-  // Возвращаем успешный ответ с данными пользователя  
+  var users []models.Users
+  //db.Where("email = ?", email.Email).Find(&users)
+  if err := db.Where("email = ?", email.Email).First(&users).Error; err != nil {
+    if err == gorm.ErrRecordNotFound {
+      c.JSON(http.StatusBadRequest, gin.H{"message": "Пользователь с таким email не найден"})
+      return
+    }
+    c.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка базы данных"})
+    return
+  }
+
+  // Генерируем уникальный токен
+  token := uuid.New().String()
+  // Создаем запись о сбросе пароля
+ 
+  passwordReset := models.PasswordReset{
+    UserID:    users[0].ID,
+    Token:     token,
+    ExpiresAt: time.Now().Add(time.Hour * 24), // Токен действителен 24 часа
+  }
+  if err := db.Create(&passwordReset).Error; err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка базы данных"})
+    return
+  }
+  
+  // Отправляем email со ссылкой для сброса пароля
+  resetLink := fmt.Sprintf("https://mcic.events/reset_password?token=%s", token)
+  if err := sendEmailWithoutTLS(email.Email, resetLink); err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{"message": "Не удалось отправить письмо"})
+    return
+  }
   c.JSON(http.StatusOK, gin.H{"message": "Письмо с инструкцией по сбросу пароля отправлено на ваш email. Проверьте папку входящих."})
-
 
 }
 
-
-func sendEmailWithoutTLS(to, password string) error {
+func sendEmailWithoutTLS(to, resetLink string) error {
     
   config, err := config.LoadConfig("config/config.json")  
   if err != nil {  
       fmt.Println("Error loading config:", err)  
       return err 
   }
-  //from := "info@prvlab.ru"
-  //pass := "fcvycYrUceBGVTLRxrQd"
-  //smtpHost := "smtp.mail.ru"
-  //smtpPort := "25" // Порт для SMTP без TLS (обычно 587 или 25)
 
-  msg := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n\nВаш пароль: %s", config.Emails.Email, to, config.Emails.Subject, password)
+  msg := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n\nСсылка для востановления пароля: %s", config.Emails.Email, to, config.Emails.Subject, resetLink)
   auth := smtp.PlainAuth("", config.Emails.Email, config.Emails.Password, config.Emails.SmtpServer)
 
   // Отправка email без TLS - ОПАСНО!

@@ -53,7 +53,7 @@ func initDB(appConfig config.Config) {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	db.AutoMigrate(&models.Task{})
+	db.AutoMigrate(&models.Task{}, &models.Users{}, &models.PasswordReset{})
 }
 func main() {
 	fmt.Println("version=", version)
