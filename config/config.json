@@ -20,7 +20,8 @@
       "smtp_port": "25",  
       "recipient": "recipient@example.com",  
       "subject": "TasksEvents - восстановление пароля",  
-      "body": "This is a test email sent from Go using Gmail!"  
+      "body": "This is a test email sent from Go using Gmail!",
+      "link": "https://mcic.events"
   }
 }
 

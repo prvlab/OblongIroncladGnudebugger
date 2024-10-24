@@ -28,7 +28,8 @@ type Config struct {
 			SmtpPort   string `json:"smtp_port"`  
 			Recipient  string `json:"recipient"`  
 			Subject    string `json:"subject"`  
-			Body       string `json:"body"`  
+			Body       string `json:"body"`
+			Link       string `json:"link"`
 	}`json:"emails"`
 }
 

@@ -106,6 +106,8 @@ func main() {
 	router.GET("/ok_registration", controllers.OkRegistrationPage)
 	router.GET("/reset_password", controllers.ResetPasswordPage)
 	router.POST("/sendpass", controllers.HandleResetPassword) 
+	router.GET("/new_password_page", controllers.NewPasswordPage)
+	router.POST("/new_password", controllers.NewPassword)
 	//http.HandleFunc("/sendpass", controllers.HandlePasswordReset)
 
 	// Запуск веб-сервера
