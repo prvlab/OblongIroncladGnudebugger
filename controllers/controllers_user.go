@@ -117,7 +117,7 @@ func HandleResetPassword(c *gin.Context){
     Token:     token,
     ExpiresAt: time.Now().Add(time.Hour * 24), // Токен действителен 24 часа
   }
-  if err := db.Create(&passwordReset).Error; err != nil {
+  if err := database.DB.Create(&passwordReset).Error; err != nil {
     c.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка базы данных"})
     return
   }
@@ -164,7 +164,7 @@ func NewPassword(c *gin.Context) {
   }
 
   var passwordReset models.PasswordReset
-  if err := db.Where("token = ?", request.Token).First(&passwordReset).Error; err != nil {
+  if err := database.DB.Where("token = ?", request.Token).First(&passwordReset).Error; err != nil {
     if err == gorm.ErrRecordNotFound {
       c.JSON(http.StatusBadRequest, gin.H{"message": "Токен не найден или истек"})
       return
@@ -181,7 +181,7 @@ func NewPassword(c *gin.Context) {
 
   // Обновление пароля пользователя
   var user models.Users
-  if err := db.First(&user, passwordReset.UserID).Error; err != nil {
+  if err := database.DB.First(&user, passwordReset.UserID).Error; err != nil {
     c.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка базы данных"})
     return
   }
@@ -194,13 +194,13 @@ func NewPassword(c *gin.Context) {
   }
   user.Password = hashedPassword
 
-  if err := db.Save(&user).Error; err != nil {
+  if err := database.DB.Save(&user).Error; err != nil {
     c.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка обновления пароля"})
     return
   }
 
   // Удаление записи о сбросе пароля после успешного обновления
-  if err := db.Delete(&passwordReset).Error; err != nil {
+  if err := database.DB.Delete(&passwordReset).Error; err != nil {
     // Логирование ошибки, но не возвращаем ошибку клиенту, т.к. главное - обновление пароля
     fmt.Printf("Ошибка удаления записи о сбросе пароля: %v\n", err)
   }

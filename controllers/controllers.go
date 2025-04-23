@@ -12,7 +12,7 @@ import (
 
 func GetCompletedTasks(c *gin.Context) {
 	var tasks []models.Task
-	db.Where("status = ?", "completed").Find(&tasks) // Предположительно у вас есть статус для задач
+	database.DB.Where("status = ?", "completed").Find(&tasks) // Предположительно у вас есть статус для задач
 
 	c.HTML(http.StatusOK, "task_view.html", gin.H{
 		"tasks": tasks,
@@ -29,7 +29,7 @@ func GetTomorrowTasks(c *gin.Context) {
 	}
 	var tasks []models.Task
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02") // Получаем завтрашнюю дату
-	db.Where("date(created_at) = ? and user_id = ?", tomorrow, userID).Find(&tasks)
+	database.DB.Where("date(created_at) = ? and user_id = ?", tomorrow, userID).Find(&tasks)
 
 	c.HTML(http.StatusOK, "task_view.html", gin.H{
 		"tasks": tasks,
@@ -45,8 +45,8 @@ func GetAllTasks(c *gin.Context) {
 		return
 	}
 	var tasks []models.Task
-	//db.Find(&tasks) // Получаем все задачи
-	db.Where("user_id = ?", userID).Find(&tasks)
+	//database.DB.Find(&tasks) // Получаем все задачи
+	database.DB.Where("user_id = ?", userID).Find(&tasks)
 
 	c.HTML(http.StatusOK, "task_view.html", gin.H{
 		"tasks": tasks,
@@ -63,7 +63,7 @@ func GetTodayTasks(c *gin.Context) {
 	}
 	var tasks []models.Task
 	today := time.Now().Format("2006-01-02")                                     // Форматируем текущую дату
-	db.Where("date(created_at) = ? and user_id = ?", today, userID).Find(&tasks) // В зависимости от вашей модели
+	database.DB.Where("date(created_at) = ? and user_id = ?", today, userID).Find(&tasks) // В зависимости от вашей модели
 
 	c.HTML(http.StatusOK, "task_view.html", gin.H{
 		"tasks": tasks,
