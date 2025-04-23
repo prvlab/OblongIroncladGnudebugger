@@ -16,6 +16,7 @@ import (
 	//"os"
 	"task-manager/config"
 	"task-manager/models"
+  "task-manager/database"
 )
 
 // User структура для представления пользователя

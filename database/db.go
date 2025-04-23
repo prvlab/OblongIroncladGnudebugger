@@ -1,4 +1,3 @@
-
 package database
 
 import (
@@ -6,6 +5,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"task-manager/config"
+	"task-manager/models" // Import the models package
 )
 
 var DB *gorm.DB
