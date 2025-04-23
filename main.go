@@ -49,8 +49,9 @@ func init() {
 		log.Fatal("Error loading config:", err)
 	}
 
+	// Initialize database connection
 	if err := database.InitDB(appConfig); err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to initialize database:", err)
 	}
 }
 func main() {

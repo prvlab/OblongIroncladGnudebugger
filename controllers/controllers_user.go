@@ -79,7 +79,7 @@ func HandleRegister(c *gin.Context) {
   // создаем новую запись в таблице users
   adduser := models.Users{FirstName: user.FirstName, LastName: user.LastName, Email: user.Email, Password: user.Password}
 
-  if err := db.Create(&adduser).Error; err != nil {
+  if err := database.DB.Create(&adduser).Error; err != nil {
       c.JSON(http.StatusInternalServerError, gin.H{"message": "данная почта уже используется другим пользователем"})
       return
     }
@@ -99,7 +99,7 @@ func HandleResetPassword(c *gin.Context){
 
   var users []models.Users
   //db.Where("email = ?", email.Email).Find(&users)
-  if err := db.Where("email = ?", email.Email).First(&users).Error; err != nil {
+  if err := database.DB.Where("email = ?", email.Email).First(&users).Error; err != nil {
     if err == gorm.ErrRecordNotFound {
       c.JSON(http.StatusBadRequest, gin.H{"message": "Пользователь с таким email не найден"})
       return
