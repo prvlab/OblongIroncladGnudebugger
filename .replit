@@ -21,3 +21,15 @@ deploymentTarget = "gce"
 [[ports]]
 localPort = 8070
 externalPort = 8000
+
+[workflows]
+runButton = "Run"
+
+[[workflows.workflow]]
+name = "Run"
+author = 37260167
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "go run main.go"

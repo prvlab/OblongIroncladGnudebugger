@@ -6,7 +6,7 @@ import (
 	"task-manager/models"
 	"time"
 	"github.com/gin-gonic/gin"
-	"task-manager/db" // Import the new database package
+	"task-manager/database" // Import the new database package
 )
 
 
