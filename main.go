@@ -51,7 +51,10 @@ func init() {
 
 	// Initialize database connection
 	if err := database.InitDB(appConfig); err != nil {
-		log.Fatal("Failed to initialize database:", err)
+		log.Printf("ВНИМАНИЕ: Не удалось подключиться к базе данных: %v", err)
+		log.Println("Проверьте настройки подключения в файле config/config.json")
+		log.Println("Для разработки без базы данных закомментируйте вызов database.InitDB в main.go")
+		log.Fatal("Завершение работы из-за ошибки подключения к базе данных")
 	}
 }
 func main() {
