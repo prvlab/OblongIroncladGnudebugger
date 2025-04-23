@@ -8,6 +8,7 @@ import (
 	"sync"
 	"task-manager/config"
 	"task-manager/controllers"
+	"task-manager/database" // Import the new database package
 	"task-manager/models"
 
 	"github.com/gin-gonic/gin"
@@ -20,13 +21,13 @@ var (
 	version = "1.0.0"
 	build   = "10092024"
 )
-var db *gorm.DB
+
 var bot *tgbotapi.BotAPI
 var appConfig config.Config
 var users = make(map[int]int) // для хранения пользовательского статуса
 var mu sync.Mutex             // мьютекс для безопасного доступа к map в goroutines
 
- 
+
 
 // функция для обновления пользовательского статуса
 func updateUserStatus(userID int, status int) {
@@ -42,34 +43,25 @@ func getUserStatus(userID int) int {
 	return users[userID]
 }
 
-func initDB(appConfig config.Config) {
+func init() {
 	var err error
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-		appConfig.Database.Host, appConfig.Database.User, appConfig.Database.Password,
-		appConfig.Database.DbName, appConfig.Database.Port)
-
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	appConfig, err = config.LoadConfig("config/config.json")
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatal("Error loading config:", err)
 	}
 
-	db.AutoMigrate(&models.Task{}, &models.Users{}, &models.PasswordReset{})
+	if err := database.InitDB(appConfig); err != nil {
+		log.Fatal(err)
+	}
 }
 func main() {
 	fmt.Println("version=", version)
 	fmt.Println("build=", build)
 	// Загрузка конфигурации
-	var err error
-	appConfig, err = config.LoadConfig("config/config.json") // Используйте функцию LoadConfig из пакета config
-	if err != nil {
-		log.Fatal("Error loading config:", err)
-	}
 
-	// Инициализация базы данных
-	initDB(appConfig)
-	controllers.SetDatabase(db) // Установка базы данных в контроллер
+	// Инициализация базы данных - moved to init()
 	// Инициализация бота
-	bot, err = tgbotapi.NewBotAPI(appConfig.Telegram.Token)
+	bot, err := tgbotapi.NewBotAPI(appConfig.Telegram.Token)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -105,7 +97,7 @@ func main() {
 	router.POST("/registration", controllers.HandleRegister)
 	router.GET("/ok_registration", controllers.OkRegistrationPage)
 	router.GET("/reset_password", controllers.ResetPasswordPage)
-	router.POST("/sendpass", controllers.HandleResetPassword) 
+	router.POST("/sendpass", controllers.HandleResetPassword)
 	router.GET("/new_password_page", controllers.NewPasswordPage)
 	router.POST("/new_password", controllers.NewPassword)
 	//http.HandleFunc("/sendpass", controllers.HandlePasswordReset)
@@ -178,7 +170,7 @@ func createTask(c *gin.Context) {
 	// создаем новую задачу
 	task := models.Task{Title: title, Description: description, UserID: userID}
 
-	db.Create(&task)
+	database.DB.Create(&task) // Use the DB from the database package
 
 	c.Redirect(http.StatusFound, "/tasks")
 }
@@ -186,7 +178,7 @@ func createTask(c *gin.Context) {
 // getTasks возвращает списки задач
 func getTasks(c *gin.Context) {
 	var tasks []models.Task
-	db.Find(&tasks)
+	database.DB.Find(&tasks) // Use the DB from the database package
 
 	c.HTML(http.StatusOK, "task_view.html", gin.H{
 		"tasks": tasks,
@@ -221,7 +213,7 @@ func createTaskFromMessage(message *tgbotapi.Message) {
 	userID := uint64(message.From.ID)
 
 	task := models.Task{Title: message.Text, UserID: userID}
-	db.Create(&task)
+	database.DB.Create(&task) // Use the DB from the database package
 
 	msg := tgbotapi.NewMessage(message.Chat.ID, "Task created: "+message.Text)
 	bot.Send(msg)
@@ -248,7 +240,7 @@ func getAllTaskCountForUser(userID int) int64 {
 	// Здесь добавьте логику для получения количества задач из вашей базы данных
 	var count int64
 
-	err := db.Model(&models.Task{}).Where("user_id = ?", userID).Count(&count).Error
+	err := database.DB.Model(&models.Task{}).Where("user_id = ?", userID).Count(&count).Error // Use the DB from the database package
 	if err != nil {
 		return 0
 	}

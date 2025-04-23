@@ -6,15 +6,9 @@ import (
 	"task-manager/models"
 	"time"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	"task-manager/db" // Import the new database package
 )
 
-var db *gorm.DB // глобальная переменная для подключения к базе данных
-
-// Функция для инициализации базы данных
-func SetDatabase(database *gorm.DB) {
-	db = database
-}
 
 func GetCompletedTasks(c *gin.Context) {
 	var tasks []models.Task
